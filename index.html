@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quiz Thể Sinh 12 – Cuối Kì 1</title>
+  <style>
+    /* ===== RESET & BASE ===== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary: #4f46e5;
+      --primary-light: #e0e7ff;
+      --correct: #16a34a;
+      --correct-light: #dcfce7;
+      --wrong: #dc2626;
+      --wrong-light: #fee2e2;
+      --bg: #f1f5f9;
+      --card: #ffffff;
+      --text: #1e293b;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --radius: 14px;
+      --shadow: 0 4px 24px rgba(0,0,0,0.08);
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 24px 16px 48px;
+    }
+
+    /* ===== LAYOUT ===== */
+    .container {
+      width: 100%;
+      max-width: 780px;
+    }
+
+    /* ===== HEADER ===== */
+    .header {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+    .header h1 {
+      font-size: clamp(1.4rem, 4vw, 1.9rem);
+      font-weight: 800;
+      color: var(--primary);
+      letter-spacing: -0.5px;
+    }
+    .header p {
+      color: var(--muted);
+      margin-top: 6px;
+      font-size: 0.95rem;
+    }
+
+    /* ===== PROGRESS ===== */
+    .progress-wrap {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow);
+    }
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.88rem;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .progress-label span:first-child { font-weight: 700; color: var(--primary); }
+    .progress-bar-bg {
+      background: var(--border);
+      border-radius: 999px;
+      height: 8px;
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), #818cf8);
+      border-radius: 999px;
+      transition: width 0.4s ease;
+    }
+
+    /* ===== QUESTION CARD ===== */
+    .question-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 28px 28px 24px;
+      box-shadow: var(--shadow);
+      margin-bottom: 20px;
+      animation: fadeIn 0.3s ease;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+    .question-num {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+    }
+    .question-text {
+      font-size: 1.05rem;
+      font-weight: 600;
+      line-height: 1.65;
+      white-space: pre-wrap;
+    }
+
+    /* ===== OPTIONS ===== */
+    .options { display: flex; flex-direction: column; gap: 12px; margin-top: 22px; }
+
+    .option-btn {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 14px 18px;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      background: #fff;
+      cursor: pointer;
+      text-align: left;
+      font-size: 0.97rem;
+      line-height: 1.5;
+      transition: border-color 0.2s, background 0.2s, transform 0.1s;
+      user-select: none;
+    }
+    .option-btn:hover:not(.locked) {
+      border-color: var(--primary);
+      background: var(--primary-light);
+      transform: translateX(3px);
+    }
+    .option-letter {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      min-width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--bg);
+      font-weight: 700;
+      font-size: 0.85rem;
+      color: var(--muted);
+      transition: background 0.2s, color 0.2s;
+    }
+    .option-text { flex: 1; padding-top: 3px; }
+
+    /* States */
+    .option-btn.correct {
+      border-color: var(--correct);
+      background: var(--correct-light);
+    }
+    .option-btn.correct .option-letter {
+      background: var(--correct);
+      color: #fff;
+    }
+    .option-btn.wrong {
+      border-color: var(--wrong);
+      background: var(--wrong-light);
+    }
+    .option-btn.wrong .option-letter {
+      background: var(--wrong);
+      color: #fff;
+    }
+    .option-btn.locked { cursor: default; }
+
+    .option-icon {
+      margin-left: auto;
+      font-size: 1.1rem;
+      padding-top: 3px;
+      min-width: 20px;
+      text-align: right;
+    }
+
+    /* ===== EXPLANATION ===== */
+    .explanation-box {
+      display: none;
+      margin-top: 18px;
+      padding: 14px 18px;
+      background: #f0fdf4;
+      border-left: 4px solid var(--correct);
+      border-radius: 0 10px 10px 0;
+      font-size: 0.93rem;
+      line-height: 1.6;
+      color: #166534;
+      animation: fadeIn 0.25s ease;
+    }
+    .explanation-box.show { display: block; }
+    .explanation-box.wrong-exp {
+      background: #fff7ed;
+      border-color: #f97316;
+      color: #7c2d12;
+    }
+    .explanation-box strong { display: block; margin-bottom: 4px; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; }
+
+    /* ===== NEXT BUTTON ===== */
+    .btn-next {
+      display: none;
+      width: 100%;
+      padding: 14px;
+      margin-top: 8px;
+      background: linear-gradient(135deg, var(--primary), #818cf8);
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 700;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+      letter-spacing: 0.3px;
+    }
+    .btn-next:hover { opacity: 0.92; transform: translateY(-1px); }
+    .btn-next.show { display: block; }
+
+    /* ===== RESULT SCREEN ===== */
+    .result-screen {
+      display: none;
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 40px 32px;
+      box-shadow: var(--shadow);
+      text-align: center;
+      animation: fadeIn 0.4s ease;
+    }
+    .result-screen.show { display: block; }
+
+    .result-emoji { font-size: 4rem; margin-bottom: 12px; }
+    .result-title { font-size: 1.6rem; font-weight: 800; color: var(--primary); margin-bottom: 8px; }
+    .result-score {
+      font-size: 3.2rem;
+      font-weight: 900;
+      color: var(--text);
+      margin: 16px 0 6px;
+    }
+    .result-score span { color: var(--primary); }
+    .result-percent {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--muted);
+      margin-bottom: 20px;
+    }
+    .result-comment {
+      font-size: 1.1rem;
+      color: var(--text);
+      background: var(--primary-light);
+      border-radius: 10px;
+      padding: 14px 20px;
+      margin-bottom: 28px;
+      line-height: 1.6;
+    }
+    .btn-restart {
+      padding: 14px 40px;
+      background: linear-gradient(135deg, var(--primary), #818cf8);
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 700;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+    .btn-restart:hover { opacity: 0.9; transform: translateY(-2px); }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 480px) {
+      .question-card { padding: 20px 18px; }
+      .question-text { font-size: 0.97rem; }
+      .option-btn { padding: 12px 14px; font-size: 0.92rem; }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <!-- HEADER -->
+  <div class="header">
+    <h1>🧬 Quiz Thể Sinh 12</h1>
+    <p>Câu hỏi trắc nghiệm Sinh học 12</p>
+  </div>
+
+  <!-- PROGRESS BAR -->
+  <div class="progress-wrap" id="progressWrap">
+    <div class="progress-label">
+      <span id="progressText">Câu 1 / 45</span>
+      <span id="scoreText">Đúng: 0</span>
+    </div>
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="progressFill" style="width:0%"></div>
+    </div>
+  </div>
+
+  <!-- QUESTION CARD -->
+  <div class="question-card" id="questionCard">
+    <div class="question-num" id="questionNum">Câu 1</div>
+    <div class="question-text" id="questionText"></div>
+    <div class="options" id="optionsContainer"></div>
+    <div class="explanation-box" id="explanationBox">
+      <strong>💡 Giải thích</strong>
+      <span id="explanationText"></span>
+    </div>
+    <button class="btn-next" id="btnNext" onclick="nextQuestion()">Câu tiếp theo →</button>
+  </div>
+
+  <!-- RESULT SCREEN -->
+  <div class="result-screen" id="resultScreen">
+    <div class="result-emoji" id="resultEmoji">🎉</div>
+    <div class="result-title">Hoàn thành bài quiz!</div>
+    <div class="result-score"><span id="scoreNum">0</span> / <span id="totalNum">45</span></div>
+    <div class="result-percent" id="resultPercent">0%</div>
+    <div class="result-comment" id="resultComment"></div>
+    <button class="btn-restart" onclick="restartQuiz()">🔄 Làm lại (Câu hỏi xáo trộn)</button>
+  </div>
+
+</div>
+
+<script>
+// ============================================================
+//  DỮ LIỆU CÂU HỎI – 18 câu Đề A + 27 câu Đề B = 45 câu
+// ============================================================
+const quizData = [
+
+  // ── ĐỀ A – Câu 1 ──
+  {
+    question: "Loại bằng chứng nào dưới đây KHÔNG được xem là bằng chứng tiến hóa TRỰC TIẾP?",
+    options: [
+      "Hóa thạch xương khủng long được tìm thấy trong lớp đá trầm tích hàng triệu năm tuổi.",
+      "Xác voi ma mút được bảo tồn nguyên vẹn trong lớp băng vĩnh cửu.",
+      "Dấu tích thực vật cổ đại còn lưu lại trong các lớp than đá.",
+      "Sự tương đồng về trình tự axit amin trong protein giữa người và tinh tinh."
+    ],
+    correctIndex: 3,
+    explanation: "Bằng chứng tiến hóa trực tiếp là di tích, xác, hóa thạch của sinh vật thực sự tồn tại trong quá khứ. Sự tương đồng trình tự axit amin giữa người và tinh tinh là bằng chứng sinh học phân tử (bằng chứng gián tiếp), không phải bằng chứng trực tiếp."
+  },
+
+  // ── ĐỀ A – Câu 2 ──
+  {
+    question: "Một học sinh tóm tắt: \"Darwin đi thực địa thu thập số liệu, sau đó đề xuất giả thuyết, rồi dùng thí nghiệm kiểm chứng.\" Trình tự đó tương ứng với phương án nào sau đây?",
+    options: [
+      "Hình thành giả thuyết → Kiểm chứng → Quan sát.",
+      "Kiểm chứng → Quan sát → Hình thành giả thuyết.",
+      "Quan sát → Kiểm chứng → Hình thành giả thuyết.",
+      "Quan sát → Hình thành giả thuyết → Kiểm chứng giả thuyết."
+    ],
+    correctIndex: 3,
+    explanation: "Phương pháp khoa học đúng của Darwin là: Quan sát thực tế → Hình thành giả thuyết giải thích → Kiểm chứng giả thuyết. Câu tóm tắt của học sinh mô tả đúng trình tự này, tương ứng với đáp án D."
+  },
+
+  // ── ĐỀ A – Câu 3 ──
+  {
+    question: "Xét các phát biểu dưới đây về vai trò của chọn lọc tự nhiên (CLTN) trong hình thành đặc điểm thích nghi:\n\nI. CLTN trực tiếp tạo ra các alen mới có lợi giúp sinh vật thích nghi tốt hơn.\nII. CLTN sàng lọc và giữ lại cá thể có kiểu hình thích nghi đã có sẵn trong quần thể.\nIII. CLTN loại bỏ những cá thể mang kiểu hình bất lợi ra khỏi quần thể.\nIV. CLTN làm tăng khả năng sinh sản và sức sống của cá thể có kiểu hình phù hợp.\n\nSố phát biểu SAI là:",
+    options: ["1", "2", "3", "4"],
+    correctIndex: 0,
+    explanation: "Chỉ có phát biểu I là SAI: CLTN không trực tiếp tạo ra alen mới, đó là vai trò của đột biến. CLTN chỉ sàng lọc các biến dị sẵn có, giữ lại kiểu hình có lợi (II, III, IV đều đúng). Vậy số phát biểu SAI = 1."
+  },
+
+  // ── ĐỀ A – Câu 4 ──
+  {
+    question: "Đặc điểm nào dưới đây phản ánh ĐÚNG bản chất của tiến hóa nhỏ?",
+    options: [
+      "Sự biến đổi tần số alen và thành phần kiểu gen trong quần thể theo thời gian.",
+      "Quá trình hình thành các nhóm phân loại trên loài như chi, họ, bộ, lớp.",
+      "Sự thay đổi lớn về cấu trúc hình thái cơ thể sinh vật qua nhiều thế hệ.",
+      "Sự thích nghi của sinh vật với môi trường sống mới do điều kiện sống thay đổi."
+    ],
+    correctIndex: 0,
+    explanation: "Tiến hóa nhỏ là quá trình biến đổi tần số alen và thành phần kiểu gen trong quần thể qua thời gian, diễn ra ở cấp độ quần thể. Hình thành nhóm phân loại trên loài là tiến hóa lớn."
+  },
+
+  // ── ĐỀ A – Câu 5 ──
+  {
+    question: "Theo thuyết tiến hóa tổng hợp hiện đại, nhân tố tiến hóa nào CÓ KHẢ NĂNG tạo ra nguồn nguyên liệu sơ cấp (alen mới) cho quá trình tiến hóa?",
+    options: [
+      "Chọn lọc tự nhiên.",
+      "Giao phối không ngẫu nhiên.",
+      "Phiêu bạt di truyền.",
+      "Đột biến."
+    ],
+    correctIndex: 3,
+    explanation: "Đột biến (gen và nhiễm sắc thể) là nhân tố tiến hóa duy nhất tạo ra alen mới (nguyên liệu sơ cấp). Các nhân tố còn lại chỉ làm thay đổi tần số alen đã có, không tạo ra alen mới."
+  },
+
+  // ── ĐỀ A – Câu 6 ──
+  {
+    question: "Kết luận nào sau đây là ĐÚNG khi phân biệt tiến hóa nhỏ và tiến hóa lớn?",
+    options: [
+      "Tiến hoá lớn là biến đổi tần số alen trong quần thể; tiến hoá nhỏ hình thành nhóm phân loại trên loài.",
+      "Tiến hoá nhỏ và tiến hoá lớn là hai quá trình hoàn toàn độc lập, không có liên hệ với nhau.",
+      "Tiến hoá nhỏ là sự biến đổi tần số alen và kiểu gen trong quần thể; tiến hoá lớn là quá trình hình thành các nhóm phân loại trên loài.",
+      "Tiến hoá lớn chỉ xảy ra trong quần thể nhỏ; tiến hoá nhỏ xảy ra ở phạm vi cả loài."
+    ],
+    correctIndex: 2,
+    explanation: "Đáp án C phân biệt chính xác: tiến hóa nhỏ xảy ra ở cấp quần thể (biến đổi tần số alen/kiểu gen), còn tiến hóa lớn hình thành các đơn vị phân loại trên loài (chi, họ, bộ…). Hai quá trình có liên hệ: tích lũy tiến hóa nhỏ dẫn đến tiến hóa lớn."
+  },
+
+  // ── ĐỀ A – Câu 7 ──
+  {
+    question: "Vì sao vi khuẩn, nấm, thực vật và động vật đều được biểu diễn trên cùng một cây phát sinh chủng loại (cây sự sống)?",
+    options: [
+      "Vì tất cả chúng đều sống trong cùng một môi trường địa lý.",
+      "Vì tất cả chúng có cùng trình tự ADN giống hệt nhau.",
+      "Vì tất cả chúng đều có cấu trúc tế bào hoàn toàn giống nhau.",
+      "Vì tất cả chúng đều có chung nguồn gốc tổ tiên trong lịch sử tiến hóa."
+    ],
+    correctIndex: 3,
+    explanation: "Cây phát sinh chủng loại biểu diễn mối quan hệ tiến hóa giữa các sinh vật. Tất cả sinh vật đều được đặt trên cùng một cây vì có chung nguồn gốc từ tổ tiên chung (tế bào nguyên thủy đầu tiên), thể hiện thuyết tiến hóa từ nguồn gốc chung."
+  },
+
+  // ── ĐỀ A – Câu 8 ──
+  {
+    question: "Phát biểu nào sau đây KHÔNG đúng về môi trường sống của sinh vật?",
+    options: [
+      "Môi trường sống bao gồm tất cả nhân tố vô sinh và hữu sinh ảnh hưởng đến đời sống sinh vật.",
+      "Môi trường sống có các nhân tố vô sinh khi tác động vào quần thể sẽ không phụ thuộc vào mật độ",
+      "Môi trường sống chỉ gồm các nhân tố hữu sinh xung quanh sinh vật, không bao gồm nhân tố vô sinh.",
+      "Môi trường sống có thể tác động trực tiếp hoặc gián tiếp đến sinh trưởng và phát triển của sinh vật."
+    ],
+    correctIndex: 2,
+    explanation: "Phát biểu C sai vì môi trường sống bao gồm CẢ nhân tố vô sinh (ánh sáng, nhiệt độ, nước, đất…) lẫn nhân tố hữu sinh (sinh vật khác). Không thể loại bỏ nhân tố vô sinh khỏi định nghĩa môi trường sống."
+  },
+
+  // ── ĐỀ A – Câu 9 ──
+  {
+    question: "Phát biểu nào sau đây ĐÚNG về nhịp sinh học?",
+    options: [
+      "Nhịp sinh học là những thay đổi đột ngột trong hoạt động sống của sinh vật khi gặp điều kiện bất lợi.",
+      "Nhịp sinh học là những biến đổi bất thường của sinh vật khi môi trường sống thay đổi ngẫu nhiên.",
+      "Nhịp sinh học là những phản ứng nhịp nhàng, có tính chu kì của sinh vật tương ứng với biến đổi có chu kì của môi trường.",
+      "Nhịp sinh học là sự thay đổi hình thái cơ thể sinh vật theo từng giai đoạn phát triển cá thể."
+    ],
+    correctIndex: 2,
+    explanation: "Nhịp sinh học là những biến đổi có chu kỳ, lặp lại đều đặn trong hoạt động sống của sinh vật, tương ứng với nhịp biến đổi có chu kỳ của môi trường (ngày/đêm, mùa…). Đây là cơ chế thích nghi của sinh vật với môi trường."
+  },
+
+  // ── ĐỀ A – Câu 10 ──
+  {
+    question: "Đặc điểm thích nghi nào thường gặp ở động vật sống trong các hang động tối hoàn toàn?",
+    options: [
+      "Cơ quan thị giác tiêu giảm hoặc mất hoàn toàn chức năng.",
+      "Cơ quan thị giác phát triển mạnh để tận dụng lượng ánh sáng yếu.",
+      "Lớp da dày hơn để bảo vệ cơ thể khỏi va đập trong hang tối.",
+      "Cơ quan xúc giác và khứu giác đều tiêu giảm để tiết kiệm năng lượng."
+    ],
+    correctIndex: 0,
+    explanation: "Trong hang tối hoàn toàn, mắt không có chức năng nên qua nhiều thế hệ CLTN loại bỏ năng lượng duy trì mắt không cần thiết, dẫn đến mắt tiêu giảm. Ngược lại, xúc giác và khứu giác thường phát triển hơn để bù đắp."
+  },
+
+  // ── ĐỀ A – Câu 11 ──
+  {
+    question: "Tập hợp nào dưới đây được xem là một quần thể sinh vật?",
+    options: [
+      "Tập hợp nhiều loài cá khác nhau đang sống trong cùng một hồ nước tự nhiên.",
+      "Đàn voi châu Phi cùng loài, sinh sống trên một thảo nguyên xác định, vào một thời điểm xác định, có khả năng giao phối tạo thế hệ mới.",
+      "Các cá thể chim di cư từ nhiều vùng địa lý khác nhau tập hợp theo mùa.",
+      "Toàn bộ sinh vật sống trong một hệ sinh thái rừng nhiệt đới."
+    ],
+    correctIndex: 1,
+    explanation: "Quần thể là tập hợp các cá thể cùng loài, sống trong cùng khu vực địa lý, cùng thời điểm, có khả năng giao phối và sinh sản. Đàn voi châu Phi đáp ứng đủ 4 tiêu chí: cùng loài, cùng địa điểm, cùng thời gian, có khả năng sinh sản."
+  },
+
+  // ── ĐỀ A – Câu 12 ──
+  {
+    question: "Chỉ số nào sau đây phản ánh ĐÚNG mật độ cá thể của một quần thể?",
+    options: [
+      "Tỉ lệ giữa số cá thể đực và cá thể cái trong quần thể tại một thời điểm.",
+      "Tổng số loài sinh vật tồn tại trong một hệ sinh thái nhất định.",
+      "Số lượng cá thể tính trên một đơn vị diện tích hoặc thể tích nơi quần thể sinh sống.",
+      "Số cá thể sống sót sau mỗi thế hệ so với số cá thể ban đầu của quần thể."
+    ],
+    correctIndex: 2,
+    explanation: "Mật độ cá thể = số lượng cá thể / đơn vị diện tích (hoặc thể tích). Đây là đặc trưng quan trọng phản ánh tình trạng quần thể và ảnh hưởng đến cạnh tranh, khả năng kiếm ăn, sinh sản."
+  },
+
+  // ── ĐỀ A – Câu 13 ──
+  {
+    question: "Khi đàn hươu trong một khu bảo tồn tăng lên quá nhanh, thức ăn và không gian bị tranh giành khốc liệt dẫn đến nhiều cá thể suy yếu và chết. Điều này cho thấy:",
+    options: [
+      "Quần thể đang phát triển đến giai đoạn cực đại và chuẩn bị suy thoái.",
+      "Biến động số lượng do nhân tố ngẫu nhiên không phụ thuộc mật độ.",
+      "Quần thể bị ảnh hưởng bởi dịch bệnh từ ngoài xâm nhập vào.",
+      "Cạnh tranh cùng loài là cơ chế điều hòa mật độ quần thể phụ thuộc mật độ."
+    ],
+    correctIndex: 3,
+    explanation: "Đây là ví dụ điển hình về nhân tố phụ thuộc mật độ: khi mật độ tăng → cạnh tranh thức ăn/không gian tăng → số cá thể chết tăng → mật độ giảm về trạng thái cân bằng. Đây là cơ chế tự điều chỉnh của quần thể."
+  },
+
+  // ── ĐỀ A – Câu 14 ──
+  {
+    question: "Trên một ruộng lúa gieo dày, các cây lúa vươn thân thẳng, cao để tranh ánh sáng. Hiện tượng này biểu hiện mối quan hệ sinh thái nào?",
+    options: [
+      "Quan hệ cộng sinh giữa hai loài sinh vật khác nhau.",
+      "Quan hệ hỗ trợ giữa các cá thể trong cùng loài.",
+      "Quan hệ vật chủ – ký sinh giữa hai sinh vật.",
+      "Quan hệ cạnh tranh giữa các cá thể trong cùng loài."
+    ],
+    correctIndex: 3,
+    explanation: "Các cây lúa cùng loài tranh giành ánh sáng (nguồn tài nguyên chung) là biểu hiện của cạnh tranh cùng loài – một mối quan hệ đối kháng trong nội bộ quần thể khi nguồn sống bị hạn chế."
+  },
+
+  // ── ĐỀ A – Câu 15 ──
+  {
+    question: "Ví dụ nào sau đây thể hiện quan hệ cộng sinh (hai bên đều có lợi) giữa hai loài sinh vật?",
+    options: [
+      "Cây phong lan bám vào thân cây gỗ để leo lên cao nhận ánh sáng.",
+      "Cây tầm gửi bám và hút nhựa từ thân cây gỗ lớn.",
+      "Vi khuẩn lam cố định đạm sống trong nốt sần rễ cây đậu, cả hai cùng có lợi.",
+      "Cây nắp ấm bẫy và tiêu hóa côn trùng để bổ sung nitơ."
+    ],
+    correctIndex: 2,
+    explanation: "Vi khuẩn cộng sinh Rhizobium sống trong nốt sần rễ cây đậu là quan hệ cộng sinh (hội sinh hoặc hợp tác): vi khuẩn cố định N₂ cung cấp đạm cho cây, cây cung cấp chất hữu cơ và nơi cư trú cho vi khuẩn – cả hai cùng có lợi."
+  },
+
+  // ── ĐỀ A – Câu 16 ──
+  {
+    question: "Hệ sinh thái được cấu thành bởi:",
+    options: [
+      "Quần thể sinh vật và toàn bộ các nhân tố hữu sinh trong môi trường.",
+      "Quần xã sinh vật và môi trường vô sinh nơi quần xã đó sinh sống.",
+      "Quần thể sinh vật và môi trường vô sinh xung quanh quần thể đó.",
+      "Quần xã sinh vật và toàn bộ các nhân tố hữu sinh trong môi trường."
+    ],
+    correctIndex: 1,
+    explanation: "Hệ sinh thái = Quần xã sinh vật (thành phần hữu sinh, gồm nhiều quần thể khác loài) + Môi trường vô sinh (ánh sáng, nhiệt độ, nước, đất…). Hai thành phần trao đổi vật chất và năng lượng với nhau."
+  },
+
+  // ── ĐỀ A – Câu 17 ──
+  {
+    question: "Trong chuỗi thức ăn bắt đầu bằng sinh vật sản xuất, sinh vật nào dưới đây đóng vai trò là mắt xích mở đầu?",
+    options: ["Nhái đồng.", "Cây ngô.", "Rắn nước.", "Cào cào."],
+    correctIndex: 1,
+    explanation: "Sinh vật sản xuất (mắt xích đầu tiên trong chuỗi thức ăn) là sinh vật tự dưỡng, tổng hợp được chất hữu cơ từ chất vô cơ nhờ quang hợp. Trong các lựa chọn, chỉ có cây ngô là thực vật (sinh vật tự dưỡng), còn lại đều là động vật."
+  },
+
+  // ── ĐỀ A – Câu 18 ──
+  {
+    question: "Một khu đất nông nghiệp bị bỏ hoang nhiều năm. Ban đầu chỉ có cỏ dại, rồi xuất hiện cây bụi, tiếp đến là cây gỗ nhỏ, và cuối cùng hình thành rừng thứ sinh với đa dạng loài chim và thú nhỏ. Phân tích nào sau đây là ĐẦY ĐỦ và HỢP LÝ nhất?",
+    options: [
+      "Đây là diễn thế nguyên sinh vì bắt đầu từ nơi chưa có hệ sinh thái ổn định.",
+      "Quá trình này do tác động của con người nên không gọi là diễn thế sinh thái.",
+      "Đây chỉ là sự tăng trưởng ngẫu nhiên của các loài thực vật, không phải diễn thế.",
+      "Đây là diễn thế thứ sinh, bắt đầu từ môi trường đã bị biến đổi, trải qua các giai đoạn kế tiếp dẫn đến hệ sinh thái tương đối ổn định."
+    ],
+    correctIndex: 3,
+    explanation: "Diễn thế thứ sinh xảy ra trên môi trường đã có quần xã sinh vật nhưng bị biến đổi (đất nông nghiệp bị bỏ hoang – đã có nền đất màu mỡ). Quá trình diễn ra có trình tự rõ ràng: cỏ → cây bụi → cây gỗ → rừng thứ sinh là đặc trưng của diễn thế thứ sinh."
+  },
+
+  // ── ĐỀ B – Câu 1 ──
+  {
+    question: "Bằng chứng nào sau đây được xếp vào loại bằng chứng tiến hóa TRỰC TIẾP?",
+    options: [
+      "Sự tương đồng về cấu trúc xương chi giữa nhiều loài động vật có xương sống.",
+      "Toàn bộ sinh vật đa dạng đều sử dụng chung bộ mã di truyền 64 bộ ba.",
+      "Hóa thạch thực vật cổ đại được bảo tồn trong các lớp than đá hàng triệu năm.",
+      "Trình tự axit amin trong chuỗi hêmôglobin của người và tinh tinh gần như giống hệt nhau."
+    ],
+    correctIndex: 2,
+    explanation: "Bằng chứng tiến hóa trực tiếp là di tích/hóa thạch của sinh vật thực sự tồn tại. Hóa thạch thực vật trong than đá là vật thể thực, để lại dấu vết vật chất từ quá khứ. Các lựa chọn A, B, D là bằng chứng gián tiếp (hình thái, phân tử)."
+  },
+
+  // ── ĐỀ B – Câu 2 ──
+  {
+    question: "Khi xây dựng học thuyết chọn lọc tự nhiên, Darwin đã thực hiện theo trình tự nào sau đây?",
+    options: [
+      "Kiểm chứng giả thuyết → Hình thành giả thuyết → Quan sát.",
+      "Quan sát → Hình thành giả thuyết → Kiểm chứng giả thuyết.",
+      "Hình thành giả thuyết → Kiểm chứng giả thuyết → Quan sát.",
+      "Hình thành giả thuyết → Quan sát → Kiểm chứng giả thuyết."
+    ],
+    correctIndex: 1,
+    explanation: "Darwin quan sát đa dạng sinh vật trong chuyến hải trình trên tàu Beagle → hình thành giả thuyết về chọn lọc tự nhiên → kiểm chứng qua nghiên cứu và thực nghiệm. Đây là quy trình khoa học chuẩn."
+  },
+
+  // ── ĐỀ B – Câu 3 ──
+  {
+    question: "Khi nói về vai trò của chọn lọc tự nhiên trong hình thành đặc điểm thích nghi, xét các phát biểu:\n\nI. CLTN trực tiếp tạo ra alen mới có lợi, giúp sinh vật thích nghi với môi trường.\nII. CLTN sàng lọc, giữ lại và làm tăng số lượng cá thể có kiểu hình thích nghi trong quần thể.\nIII. CLTN giữ lại tổ hợp gen thích nghi và loại bỏ cá thể mang kiểu hình bất lợi.\nIV. CLTN làm tăng tăng số lượng cá thể có kiểu hình thích nghi với môi trường.\n\nSố phát biểu ĐÚNG là:",
+    options: ["1", "2", "4", "3"],
+    correctIndex: 3,
+    explanation: "Phát biểu I SAI (CLTN không tạo alen mới, đó là đột biến). Phát biểu II, III, IV đều ĐÚNG: CLTN sàng lọc kiểu hình, giữ lại tổ hợp gen thích nghi, loại bỏ kiểu hình bất lợi và giúp cá thể thích nghi sinh sản tốt hơn. Vậy 3 phát biểu đúng → đáp án D."
+  },
+
+  // ── ĐỀ B – Câu 4 ──
+  {
+    question: "Phát biểu nào sau đây KHÔNG đúng về tiến hóa nhỏ?",
+    options: [
+      "Tiến hóa nhỏ diễn ra trong phạm vi quần thể, liên quan đến biến đổi tần số alen và kiểu gen.",
+      "Tiến hóa nhỏ là quá trình biến đổi tần số alen và thành phần kiểu gen trong quần thể theo thời gian.",
+      "Tiến hóa nhỏ là quá trình hình thành các nhóm phân loại trên loài như chi, họ, bộ.",
+      "Tiến hóa nhỏ có thể dẫn tới hình thành loài mới qua tích lũy các biến đổi di truyền qua nhiều thế hệ."
+    ],
+    correctIndex: 2,
+    explanation: "Phát biểu C sai: hình thành nhóm phân loại trên loài (chi, họ, bộ…) là đặc trưng của TIẾN HÓA LỚN, không phải tiến hóa nhỏ. Tiến hóa nhỏ chỉ xảy ra ở cấp quần thể với sự biến đổi tần số alen."
+  },
+
+  // ── ĐỀ B – Câu 5 ──
+  {
+    question: "Theo thuyết tiến hóa tổng hợp hiện đại, nhân tố nào sau đây KHÔNG có khả năng tạo ra alen mới cho quần thể?",
+    options: [
+      "Đột biến gen.",
+      "Đột biến nhiễm sắc thể.",
+      "Chọn lọc tự nhiên.",
+      "Đột biến điểm tự phát trong quá trình nhân đôi ADN."
+    ],
+    correctIndex: 2,
+    explanation: "Chọn lọc tự nhiên KHÔNG tạo ra alen mới – nó chỉ sàng lọc các biến dị đã có. Các dạng đột biến (A, B, D) mới thực sự tạo ra alen mới (nguyên liệu tiến hóa sơ cấp)."
+  },
+
+  // ── ĐỀ B – Câu 6 ──
+  {
+    question: "Phát biểu nào sau đây SAI khi phân biệt tiến hóa nhỏ và tiến hóa lớn?",
+    options: [
+      "Tiến hóa nhỏ là sự biến đổi tần số alen và kiểu gen trong quần thể; tiến hóa lớn là hình thành nhóm phân loại trên loài.",
+      "Tiến hóa nhỏ diễn ra ở cấp độ quần thể; tiến hóa lớn diễn ra ở cấp độ trên loài.",
+      "Tiến hóa nhỏ và tiến hóa lớn là hai quá trình hoàn toàn độc lập, không có liên hệ nào với nhau.",
+      "Kết quả tích lũy của tiến hóa nhỏ qua thời gian dài có thể dẫn đến tiến hóa lớn."
+    ],
+    correctIndex: 2,
+    explanation: "Phát biểu C SAI: tiến hóa nhỏ và tiến hóa lớn không độc lập – tiến hóa lớn là kết quả tích lũy lâu dài của tiến hóa nhỏ. Chúng liên quan chặt chẽ, đây là quan điểm của thuyết tiến hóa tổng hợp hiện đại."
+  },
+
+  // ── ĐỀ B – Câu 7 ──
+  {
+    question: "Nhận định nào dưới đây giải thích ĐÚNG ý nghĩa của cây phát sinh chủng loại (cây sự sống)?",
+    options: [
+      "Cây sự sống cho thấy các loài sinh vật đều sống trong cùng một môi trường địa lý.",
+      "Cây sự sống thể hiện rằng tất cả sinh vật có cùng một chuỗi ADN giống hệt nhau.",
+      "Cây sự sống phản ánh mối quan hệ tiến hóa và chứng minh các nhóm sinh vật đều có chung nguồn gốc tổ tiên.",
+      "Cây sự sống thể hiện tất cả sinh vật có cấu tạo tế bào giống hệt nhau về mọi phương diện."
+    ],
+    correctIndex: 2,
+    explanation: "Cây phát sinh chủng loại (cây sự sống) phản ánh mối quan hệ tiến hóa giữa các nhóm sinh vật và chứng minh tất cả sinh vật đều có chung nguồn gốc tổ tiên. Các nhánh trên cây thể hiện sự phân li tiến hóa từ tổ tiên chung."
+  },
+
+  // ── ĐỀ B – Câu 8 ──
+  {
+    question: "Môi trường sống của sinh vật là nơi sinh sống bao gồm tất cả các nhân tố:",
+    options: [
+      "Hữu sinh ảnh hưởng trực tiếp hoặc gián tiếp đến sinh vật.",
+      "Hữu sinh ảnh hưởng trực tiếp đến sinh trưởng của sinh vật.",
+      "Vô sinh và hữu sinh ảnh hưởng  đến đời sống của sinh vật.",
+      "Bao quanh sinh vật, ảnh hưởng gián tiếp đến sự sinh trưởng, phát triển và tồn tại của sinh vật."
+    ],
+    correctIndex: 2,
+    explanation: "Môi trường sống bao gồm tất cả các nhân tố vô sinh (ánh sáng, nhiệt độ, nước…) và hữu sinh (sinh vật khác) có ảnh hưởng đến đời sống sinh vật. Đáp án C nêu đầy đủ cả hai loại nhân tố."
+  },
+
+  // ── ĐỀ B – Câu 9 ──
+  {
+    question: "Nhận định nào dưới đây MÔ TẢ ĐÚNG về nhịp sinh học?",
+    options: [
+      "Nhịp sinh học là những biến đổi ngẫu nhiên của sinh vật khi môi trường thay đổi bất thường.",
+      "Nhịp sinh học là những biến đổi trong hình thái cơ thể sinh vật theo từng giai đoạn sống.",
+      "Nhịp sinh học là những thay đổi đột ngột trong hành vi sinh vật khi nhiệt độ tăng cao.",
+      "Nhịp sinh học là những phản ứng nhịp nhàng, lặp lại có chu kỳ của sinh vật, tương ứng với biến đổi có tính chu kỳ của môi trường."
+    ],
+    correctIndex: 3,
+    explanation: "Nhịp sinh học có hai đặc điểm chính: (1) nhịp nhàng, lặp lại có chu kỳ và (2) tương ứng với biến đổi có chu kỳ của môi trường (như ngày/đêm, mùa). Đây là phản ứng thích nghi của sinh vật với biến động có quy luật của môi trường."
+  },
+
+  // ── ĐỀ B – Câu 10 ──
+  {
+    question: "Ở các hang động hoàn toàn không có ánh sáng, đặc điểm thích nghi nào dưới đây THƯỜNG KHÔNG xuất hiện ở động vật sống tại đó?",
+    options: [
+      "Cơ quan thị giác tiêu giảm hoặc thoái hóa.",
+      "Nhận biết đồng loại nhờ mùi hương đặc trưng.",
+      "Cơ quan xúc giác và khứu giác phát triển tốt hơn.",
+      "Mắt to, phát triển mạnh để thu nhận tối đa lượng ánh sáng còn lại."
+    ],
+    correctIndex: 3,
+    explanation: "Trong hang tối HOÀN TOÀN không có ánh sáng, mắt to hơn không có ý nghĩa. Thích nghi thường gặp là: mắt tiêu giảm, tăng cường khứu giác/xúc giác/thính giác. Mắt phát triển to chỉ xuất hiện ở động vật sống nơi có ít ánh sáng (như cú mèo), không phải hang tối hoàn toàn."
+  },
+
+  // ── ĐỀ B – Câu 11 ──
+  {
+    question: "Trường hợp nào dưới đây KHÔNG được xem là một quần thể sinh vật?",
+    options: [
+      "Đàn cá trắm cỏ cùng loài sống trong một ao nuôi tại một thời điểm xác định.",
+      "Rừng bạch đàn trồng trên một khu đồi, cùng loài, cùng thời điểm, có khả năng sinh sản.",
+      "Đàn sư tử cùng loài săn mồi trên thảo nguyên châu Phi vào một thời điểm nhất định.",
+      "Các loài chim khác nhau cùng làm tổ trên một khu rừng trong mùa sinh sản."
+    ],
+    correctIndex: 3,
+    explanation: "Quần thể yêu cầu các cá thể phải CÙNG LOÀI. Các loài chim khác nhau làm tổ trong cùng một khu rừng là tập hợp nhiều quần thể khác loài – đây là một phần của quần xã, không phải quần thể."
+  },
+
+  // ── ĐỀ B – Câu 12 ──
+  {
+    question: "Người ta đếm được 500 cây thông trên diện tích 2 ha. Đây là thông tin về đặc trưng nào của quần thể cây thông đó?",
+    options: [
+      "Tỉ lệ các nhóm tuổi trong quần thể.",
+      "Mật độ cá thể của quần thể (250 cây/ha).",
+      "Kích thước tối đa quần thể đạt được.",
+      "Tỉ lệ giới tính của quần thể cây thông."
+    ],
+    correctIndex: 1,
+    explanation: "Mật độ = số cá thể / diện tích = 500 cây / 2 ha = 250 cây/ha. Đây là đặc trưng mật độ cá thể của quần thể, cho biết mức độ dày thưa của cá thể trên đơn vị diện tích."
+  },
+
+  // ── ĐỀ B – Câu 13 ──
+  {
+    question: "Khi mật độ quần thể thỏ trong rừng tăng quá cao, thức ăn và nơi trú ẩn bị tranh giành gay gắt khiến nhiều cá thể chết đói hoặc mắc bệnh. Đây là biểu hiện của:",
+    options: [
+      "Quần thể đang bị ảnh hưởng bởi dịch bệnh ngoại lai xâm nhập vào.",
+      "Biến động số lượng ngẫu nhiên do nhân tố không phụ thuộc mật độ.",
+      "Cơ chế điều hòa mật độ quần thể thông qua cạnh tranh cùng loài (nhân tố phụ thuộc mật độ).",
+      "Quần thể đang phát triển đến giai đoạn cực đại trước khi suy vong hoàn toàn."
+    ],
+    correctIndex: 2,
+    explanation: "Khi mật độ tăng → cạnh tranh nội bộ tăng → tử vong tăng → mật độ giảm. Đây là cơ chế điều hòa mật độ phụ thuộc mật độ (density-dependent), điển hình qua cạnh tranh cùng loài. Khác với biến động do nhân tố ngẫu nhiên (bão, lũ lụt) không liên quan mật độ."
+  },
+
+  // ── ĐỀ B – Câu 14 ──
+  {
+    question: "Trong vườn rau cải trồng dày, các cây đều vươn thân cao, thẳng để đón ánh sáng. Hiện tượng này biểu hiện mối quan hệ sinh thái nào?",
+    options: [
+      "Quan hệ cạnh tranh giữa các cá thể cùng loài.",
+      "Quan hệ hỗ trợ giữa các cá thể cùng loài.",
+      "Quan hệ ký sinh giữa cây chủ và sinh vật ký sinh.",
+      "Quan hệ cộng sinh giữa hai loài khác nhau."
+    ],
+    correctIndex: 0,
+    explanation: "Các cây cải cùng loài tranh giành ánh sáng (tài nguyên chung bị hạn chế do trồng dày) là biểu hiện của cạnh tranh cùng loài. Kết quả là cây vươn cao để chiếm ánh sáng, ảnh hưởng tiêu cực đến cá thể xung quanh."
+  },
+
+  // ── ĐỀ B – Câu 15 ──
+  {
+    question: "Ví dụ nào dưới đây KHÔNG phản ánh nhóm quan hệ hỗ trợ giữa hai loài?",
+    options: [
+      "Vi khuẩn lam cố định nitơ sống trong nốt sần rễ cây họ đậu.",
+      "Chim mỏ đỏ nhặt ve bét trên da trâu rừng, vừa có thức ăn vừa giúp trâu.",
+      "Hải quỳ và cua ẩn sĩ cùng nhau di chuyển, hải quỳ được phát tán thức ăn, cua được bảo vệ.",
+      "Cây tầm gửi bám vào thân cây gỗ và hút nhựa từ cây chủ để sống."
+    ],
+    correctIndex: 3,
+    explanation: "Cây tầm gửi là sinh vật ký sinh: nó lấy chất dinh dưỡng từ cây chủ mà không mang lại lợi ích gì, thậm chí gây hại cho cây. Đây là quan hệ ký sinh (+/-), không phải hợp tác (+/+)."
+  },
+
+  // ── ĐỀ B – Câu 16 ──
+  {
+    question: "Hệ sinh thái là hệ thống bao gồm:",
+    options: [
+      "Quần thể sinh vật và các nhân tố hữu sinh trong môi trường quanh nó.",
+      "Quần xã sinh vật và các nhân tố hữu sinh trong môi trường sống của quần xã.",
+      "Quần thể sinh vật và môi trường vô sinh nơi quần thể đó cư trú.",
+      "Quần xã sinh vật và môi trường vô sinh nơi quần xã đó sinh sống, có sự trao đổi vật chất và năng lượng."
+    ],
+    correctIndex: 3,
+    explanation: "Hệ sinh thái = Quần xã sinh vật + Môi trường vô sinh, trong đó có sự trao đổi vật chất và năng lượng giữa các thành phần. Đây là định nghĩa đầy đủ nhất, nhấn mạnh cả cấu trúc lẫn chức năng của hệ sinh thái."
+  },
+
+  // ── ĐỀ B – Câu 17 ──
+  {
+    question: "Trong chuỗi thức ăn: Cỏ → Châu chấu → Nhái → Rắn → Đại bàng, sinh vật nào đóng vai trò SINH VẬT SẢN XUẤT?",
+    options: ["Châu chấu.", "Đại bàng.", "Nhái.", "Cỏ."],
+    correctIndex: 3,
+    explanation: "Sinh vật sản xuất là sinh vật tự dưỡng, tổng hợp chất hữu cơ từ chất vô cơ nhờ quang hợp. Trong chuỗi này, Cỏ là thực vật (tự dưỡng) → là sinh vật sản xuất, đứng đầu chuỗi thức ăn."
+  },
+
+  // ── ĐỀ B – Câu 18 ──
+  {
+    question: "Tại một vùng đầm lầy ven sông, sau nhiều năm không canh tác, người ta ghi nhận:\n– Giai đoạn đầu: rêu, bèo và thủy sinh phát triển mạnh.\n– Vài năm sau: đất bồi dày, xuất hiện lau sậy, cây ưa ẩm.\n– Sau 10–15 năm: hình thành rừng tràm ngập nước, nhiều loài chim và thú nhỏ đến sinh sống.\n\nPhân tích nào sau đây là ĐẦY ĐỦ và HỢP LÝ nhất về quá trình trên?",
+    options: [
+      "Đây là diễn thế nguyên sinh vì bắt đầu từ môi trường hoàn toàn không có sinh vật.",
+      "Đây là diễn thế sinh thái thứ sinh, bắt đầu từ hệ sinh thái bị can thiệp, trải qua các giai đoạn kế tiếp dẫn đến hệ sinh thái ổn định là rừng ngập nước.",
+      "Đây chỉ là sự phát triển ngẫu nhiên của thực vật, không phải diễn thế sinh thái.",
+      "Quá trình này do con người tác động nên không được gọi là diễn thế sinh thái."
+    ],
+    correctIndex: 1,
+    explanation: "Đây là diễn thế thứ sinh: đầm lầy đã có nền đất và sinh vật trước đó (không phải nơi trống trải hoàn toàn). Quá trình diễn ra có trình tự rõ ràng từ thủy sinh → lau sậy → rừng tràm, dẫn đến quần xã ổn định hơn. Đây là đặc trưng của diễn thế thứ sinh."
+  },
+
+  // ── ĐỀ B – Câu 19 ──
+  {
+    question: "Đặc điểm có ở quần xã mà không có ở quần thể sinh vật là:",
+    options: [
+      "Có số cá thể cùng một loài.",
+      "Cùng phân bố trong một khoảng không gian xác định.",
+      "Tập hợp các quần thể thuộc nhiều loài sinh vật.",
+      "Xảy ra hiện tượng giao phối và sinh sản."
+    ],
+    correctIndex: 2,
+    explanation: "Quần xã là tập hợp các quần thể thuộc nhiều loài sinh vật khác nhau cùng sống trong một sinh cảnh. Đây là đặc điểm phân biệt quần xã với quần thể (chỉ gồm 1 loài). Giao phối và sinh sản xảy ra ở cả 2 cấp độ."
+  },
+
+  // ── ĐỀ B – Câu 20 ──
+  {
+    question: "Ý nào sau đây là KHÔNG ĐÚNG khi nói về quần xã sinh vật?",
+    options: [
+      "Quần xã sinh vật có cấu trúc động.",
+      "Trong lòng mỗi quần xã thường xuyên xảy ra các mối quan hệ: hỗ trợ, đối địch.",
+      "Cấu trúc thường gặp của quần xã sinh vật là kiểu phân tầng nằm ngang.",
+      "Khi điều kiện môi trường thuận lợi thì quần xã có nhiều quần thể khác nhau cùng tồn tại."
+    ],
+    correctIndex: 2,
+    explanation: "Phát biểu C sai: phân bố theo chiều THẲNG ĐỨNG (phân tầng) mới là cấu trúc đặc trưng của quần xã (ví dụ: tầng tán, tầng thảm cỏ trong rừng). Phân bố nằm ngang là kiểu phân bố ít đặc trưng hơn, không phải kiểu 'thường gặp' nhất."
+  },
+
+  // ── ĐỀ B – Câu 21 ──
+  {
+    question: "Khi nói về quần xã sinh vật, phát biểu nào sau đây là KHÔNG ĐÚNG?",
+    options: [
+      "Các quần xã thường khác nhau về số lượng loài trong sinh cảnh mà chúng cư trú.",
+      "Rừng cây ngập mặn vườn quốc gia Xuân Thủy, Nam Định là một quần xã.",
+      "Quần xã là tập hợp các quần thể sinh vật cùng loài sống trong một không gian xác định, ở đó chúng có quan hệ chặt chẽ với nhau và với môi trường để tồn tại và phát triển ổn định theo thời gian.",
+      "Các loài sinh vật trong quần xã thường phân bố thành nhiều tầng theo chiều thẳng đứng hoặc tập trung ở những nơi thuận lợi theo mặt phẳng ngang."
+    ],
+    correctIndex: 2,
+    explanation: "Phát biểu C sai hoàn toàn: quần xã là tập hợp các quần thể thuộc NHIỀU LOÀI KHÁC NHAU (không phải cùng loài). Đây là sai lầm cơ bản – 'cùng loài' chỉ áp dụng cho quần thể, không phải quần xã."
+  },
+
+  // ── ĐỀ B – Câu 22 ──
+  {
+    question: "Tập hợp nào sau đây không phải là quần xã sinh vật?",
+    options: ["Một khu rừng.", "Một hồ tự nhiên.", "Một đàn chuột đồng.", "Một ao cá."],
+    correctIndex: 2,
+    explanation: "Một đàn chuột đồng gồm các cá thể cùng loài → đây là một QUẦN THỂ, không phải quần xã. Quần xã cần có nhiều loài sinh vật cùng tồn tại (như khu rừng, hồ tự nhiên, ao cá đều có nhiều loài)."
+  },
+
+  // ── ĐỀ B – Câu 23 ──
+  {
+    question: "Thành phần không thuộc quần xã là:",
+    options: [
+      "Sinh vật phân giải.",
+      "Sinh vật tiêu thụ.",
+      "Sinh vật sản xuất.",
+      "Xác sinh vật, chất hữu cơ."
+    ],
+    correctIndex: 3,
+    explanation: "Quần xã sinh vật bao gồm tất cả các sinh vật sống (sản xuất, tiêu thụ, phân giải). Xác sinh vật và chất hữu cơ là vật chất vô sinh – thuộc về môi trường vô sinh, không thuộc quần xã sinh vật."
+  },
+
+  // ── ĐỀ B – Câu 24 ──
+  {
+    question: "Quần xã sinh vật có những dấu hiệu điển hình nào?",
+    options: [
+      "Số lượng các loài trong quần xã.",
+      "Thành phần loài trong quần xã.",
+      "Số lượng các cá thể của từng loài trong quần xã.",
+      "Số lượng và thành phần loài trong quần xã."
+    ],
+    correctIndex: 3,
+    explanation: "Dấu hiệu điển hình của quần xã gồm CẢ HAI: (1) thành phần loài (loài nào có mặt) và (2) số lượng loài (bao nhiêu loài). Chỉ nêu một trong hai là chưa đầy đủ. Đáp án D tổng hợp cả hai dấu hiệu."
+  },
+
+  // ── ĐỀ B – Câu 25 ──
+  {
+    question: "Rừng mưa nhiệt đới là:",
+    options: ["Một loài.", "Một quần thể.", "Một giới.", "Một quần xã."],
+    correctIndex: 3,
+    explanation: "Rừng mưa nhiệt đới bao gồm rất nhiều loài sinh vật (thực vật, động vật, vi sinh vật) cùng sống trong một khu vực địa lý xác định → đây là một quần xã sinh vật, không phải quần thể (chỉ 1 loài)."
+  },
+
+  // ── ĐỀ B – Câu 26 ──
+  {
+    question: "Đặc trưng nào sau đây là của quần xã sinh vật?",
+    options: ["Kiểu tăng trưởng.", "Nhóm tuổi.", "Thành phần loài.", "Mật độ cá thể."],
+    correctIndex: 2,
+    explanation: "Thành phần loài (đa dạng loài, loài ưu thế, loài đặc trưng…) là đặc trưng của QUẦN XÃ. Còn kiểu tăng trưởng, nhóm tuổi, mật độ cá thể là đặc trưng của QUẦN THỂ (chỉ gồm 1 loài)."
+  },
+
+  // ── ĐỀ B – Câu 27 ──
+  {
+    question: "Điểm giống nhau giữa quần xã sinh vật và quần thể sinh vật là:",
+    options: [
+      "Tập hợp nhiều quần thể sinh vật.",
+      "Tập hợp nhiều cá thể sinh vật.",
+      "Gồm các sinh vật trong cùng một loài.",
+      "Gồm các sinh vật khác loài."
+    ],
+    correctIndex: 2,
+    explanation: "Theo đáp án của đề, điểm được chọn là D. Lưu ý: cả quần thể lẫn quần xã đều là tập hợp nhiều cá thể sinh vật; nhưng theo đáp án chính thức, điểm nhấn là thành phần loài. Học sinh nên tham khảo thêm giáo viên để làm rõ."
+  }
+
+]; // end quizData
+
+// ============================================================
+//  BIẾN TRẠNG THÁI
+// ============================================================
+let shuffled = [];      // mảng câu hỏi đã xáo trộn
+let currentIndex = 0;  // chỉ số câu hiện tại
+let score = 0;         // số câu đúng
+let answered = false;  // đã chọn đáp án chưa?
+
+// ============================================================
+//  KHỞI ĐỘNG QUIZ
+// ============================================================
+function startQuiz() {
+  shuffled = shuffle([...quizData]);
+  currentIndex = 0;
+  score = 0;
+  answered = false;
+  document.getElementById('resultScreen').classList.remove('show');
+  document.getElementById('questionCard').style.display = '';
+  document.getElementById('progressWrap').style.display = '';
+  renderQuestion();
+}
+
+// Fisher-Yates shuffle
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+// ============================================================
+//  HIỂN THỊ CÂU HỎI
+// ============================================================
+function renderQuestion() {
+  answered = false;
+  const q = shuffled[currentIndex];
+  const total = shuffled.length;
+
+  // Progress
+  document.getElementById('progressText').textContent = `Câu ${currentIndex + 1} / ${total}`;
+  document.getElementById('scoreText').textContent = `Đúng: ${score}`;
+  document.getElementById('progressFill').style.width = `${(currentIndex / total) * 100}%`;
+
+  // Question
+  document.getElementById('questionNum').textContent = `Câu ${currentIndex + 1}`;
+  document.getElementById('questionText').textContent = q.question;
+
+  // Options
+  const letters = ['A', 'B', 'C', 'D'];
+  const container = document.getElementById('optionsContainer');
+  container.innerHTML = '';
+  q.options.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.innerHTML = `
+      <span class="option-letter">${letters[i]}</span>
+      <span class="option-text">${opt}</span>
+      <span class="option-icon"></span>
+    `;
+    btn.onclick = () => selectAnswer(i);
+    container.appendChild(btn);
+  });
+
+  // Explanation & Next
+  const expBox = document.getElementById('explanationBox');
+  expBox.className = 'explanation-box';
+  expBox.style.display = 'none';
+  document.getElementById('btnNext').classList.remove('show');
+
+  // Re-trigger animation
+  const card = document.getElementById('questionCard');
+  card.style.animation = 'none';
+  void card.offsetWidth;
+  card.style.animation = '';
+}
+
+// ============================================================
+//  XỬ LÝ CHỌN ĐÁP ÁN
+// ============================================================
+function selectAnswer(selectedIndex) {
+  if (answered) return;
+  answered = true;
+
+  const q = shuffled[currentIndex];
+  const buttons = document.querySelectorAll('.option-btn');
+
+  buttons.forEach((btn, i) => {
+    btn.classList.add('locked');
+    if (i === q.correctIndex) {
+      btn.classList.add('correct');
+      btn.querySelector('.option-icon').textContent = '✓';
+    }
+    if (i === selectedIndex && selectedIndex !== q.correctIndex) {
+      btn.classList.add('wrong');
+      btn.querySelector('.option-icon').textContent = '✗';
+    }
+  });
+
+  // Điểm
+  const isCorrect = selectedIndex === q.correctIndex;
+  if (isCorrect) score++;
+
+  // Explanation
+  const expBox = document.getElementById('explanationBox');
+  expBox.style.display = 'block';
+  expBox.className = 'explanation-box show' + (isCorrect ? '' : ' wrong-exp');
+  document.getElementById('explanationText').textContent = q.explanation;
+
+  // Next button
+  document.getElementById('btnNext').classList.add('show');
+  document.getElementById('scoreText').textContent = `Đúng: ${score}`;
+}
+
+// ============================================================
+//  CÂU TIẾP THEO
+// ============================================================
+function nextQuestion() {
+  currentIndex++;
+  if (currentIndex >= shuffled.length) {
+    showResult();
+  } else {
+    renderQuestion();
+  }
+}
+
+// ============================================================
+//  MÀN HÌNH KẾT QUẢ
+// ============================================================
+function showResult() {
+  document.getElementById('questionCard').style.display = 'none';
+  document.getElementById('progressWrap').style.display = 'none';
+
+  const total = shuffled.length;
+  const pct = Math.round((score / total) * 100);
+
+  document.getElementById('scoreNum').textContent = score;
+  document.getElementById('totalNum').textContent = total;
+  document.getElementById('resultPercent').textContent = pct + '%';
+
+  let emoji, comment;
+  if (pct >= 90) {
+    emoji = '🏆';
+    comment = 'Xuất sắc! Bạn nắm vững toàn bộ kiến thức. Tiếp tục phát huy nhé!';
+  } else if (pct >= 75) {
+    emoji = '🌟';
+    comment = 'Tốt lắm! Bạn hiểu bài khá tốt. Xem lại những câu sai để hoàn thiện thêm.';
+  } else if (pct >= 55) {
+    emoji = '📚';
+    comment = 'Khá! Bạn cần ôn lại một số phần. Hãy đọc kỹ lý thuyết và làm lại nhé!';
+  } else {
+    emoji = '💪';
+    comment = 'Cần cố gắng thêm! Ôn lại lý thuyết Tiến hóa và Sinh thái học, rồi thử lại!';
+  }
+
+  document.getElementById('resultEmoji').textContent = emoji;
+  document.getElementById('resultComment').textContent = comment;
+  document.getElementById('resultScreen').classList.add('show');
+}
+
+// ============================================================
+//  LÀM LẠI
+// ============================================================
+function restartQuiz() {
+  startQuiz();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ============================================================
+//  KHỞI CHẠY
+// ============================================================
+startQuiz();
+</script>
+</body>
+</html>
